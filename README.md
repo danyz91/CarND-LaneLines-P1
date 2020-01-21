@@ -2,12 +2,16 @@
 [![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
 *Self Driving Car Nanodegree - Term 1 Project*
 
+[//]: # (Image References)
+[img_roi]: ./writeup_img/roi.jpg "Region of interest visualization"
+
 Overview
 ---
 
 The project aims in finding lanes on a video stream taken from a front-facing camera mounted on a car.
 The project is developed using Python and OpenCV.
 An example output is presented below:
+
 <img src="test_images_output/out0.jpg" width="480" alt="Combined Image" />
 
 Lane detection is performed via a software pipeline described below.
@@ -26,6 +30,7 @@ The pipeline consists of 5 steps:
 
 Firstly I focused in region of interest shape and coordinates. 
 I finally decided for a trapezoidal shape represented in the following example image:
+
 ![alt text][img_roi]
 
 #### Parameters tuning
