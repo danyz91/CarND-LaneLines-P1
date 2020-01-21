@@ -1,56 +1,86 @@
 # **Finding Lane Lines on the Road** 
 [![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
-
-<img src="examples/laneLines_thirdPass.jpg" width="480" alt="Combined Image" />
+*Self Driving Car Nanodegree - Term 1 Project*
 
 Overview
 ---
 
-When we drive, we use our eyes to decide where to go.  The lines on the road that show us where the lanes are act as our constant reference for where to steer the vehicle.  Naturally, one of the first things we would like to do in developing a self-driving car is to automatically detect lane lines using an algorithm.
+The project aims in finding lanes on a video stream taken from a front-facing camera mounted on a car.
+The project is developed using Python and OpenCV.
+An example output is presented below:
+<img src="test_images_output/out0.jpg" width="480" alt="Combined Image" />
 
-In this project you will detect lane lines in images using Python and OpenCV.  OpenCV means "Open-Source Computer Vision", which is a package that has many useful tools for analyzing images.  
+Lane detection is performed via a software pipeline described below.
 
-To complete the project, two files will be submitted: a file containing project code and a file containing a brief write up explaining your solution. We have included template files to be used both for the [code](https://github.com/udacity/CarND-LaneLines-P1/blob/master/P1.ipynb) and the [writeup](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md).The code file is called P1.ipynb and the writeup template is writeup_template.md 
+### 1. Pipeline description
 
-To meet specifications in the project, take a look at the requirements in the [project rubric](https://review.udacity.com/#!/rubrics/322/view)
+#### Pipeline
+My pipeline is represented by the function ```lane_extraction_pipeline()``` that takes in input an image and return the same image with the detected lane printed on it
+The pipeline consists of 5 steps:
+
+1. Grayscale conversion
+2. Gaussian smoothing 
+3. Canny edge detector
+4. Region of interest extraction
+5. Hough Transform
+
+Firstly I focused in region of interest shape and coordinates. 
+I finally decided for a trapezoidal shape represented in the following example image:
+![alt text][img_roi]
+
+#### Parameters tuning
+In the whole pipeline there are 8 parameters to tune:
+
+Algorithm | Parameter | 
+------------ | ------------
+Gaussian Smoothing | **kernel size** 
+Canny Detector |  **low threshold**
+Canny Detector |  **high threshold**
+Hough Transform |  **rho** 
+Hough Transform |  **theta** 
+Hough Transform |  **intersection threshold**
+Hough Transform |  **min line length**
+Hough Transform  | **max line gap**
+
+In order to tune them effectively I decided to create a tuning GUI contained into tuning_gui folder of this repository. The GUI is made using opencv visualization library.
+The folder tuning_gui is composed by three files:
+
+1. **cv_lib.py** containing the functions originally present in notebook provided
+2. **cv_lane_detector.py** containing the wrapper function ```lane_extaction_pipeline``` previously defined
+3. **tuning_gui.py** where there is the main GUI code. This scripts accepts two command line parameters
+```
+  -d, --dir                       Directory where to find test images
+  -s, --step {0,1,2,3,4,5}        Step number whose output will be plotted in GUI. 0 for all pipeline
+```
+
+With the tuning GUI it is possible to visualize pipeline total result or the intermediate result of a single step via the corresponding parameter.
+
+![alt text][img_tuning_gui_canny]![alt text][img_tuning_gui]
+
+When the GUI is closed the program will print in the terminal the final value of the parameters used.
+
+Final parameters used:
+
+Algorithm | Parameter | Value
+------------ | ------------ | -------------
+Gaussian Smoothing  |  **kernel size** | 7
+Canny Detector |  **low threshold** | 80
+Canny Detector |  **high threshold** | 160
+Hough Transform |  **rho** | 2
+Hough Transform |  **theta** | 1 rad
+Hough Transform |  **intersection threshold** | 15
+Hough Transform |  **min line length** | 10
+Hough Transform |  **max line gap** | 10
+
+#### Single line extraction
+In order to draw a single line on the left and right lanes, I modified the draw_lines() function by:
+
+1. Grouping the lines by their slope and their position. 
+Lines on left half of the image and with a slope < 0 are grouped for left side line.
+Lines on right half of the image and with a slope > 0 are grouped for right side line.
+2. Choosing the dominant line for each of the two groups.
+Dominant line is defined as the line that passed through the average between all the points of a group and through the two bases of the trapezoid of the ROI. These two points are computed using line equation with computed slope and passing through average point with the two value of the ROI trapezoid bases
 
 
-Creating a Great Writeup
----
-For this project, a great writeup should provide a detailed response to the "Reflection" section of the [project rubric](https://review.udacity.com/#!/rubrics/322/view). There are three parts to the reflection:
 
-1. Describe the pipeline
-
-2. Identify any shortcomings
-
-3. Suggest possible improvements
-
-We encourage using images in your writeup to demonstrate how your pipeline works.  
-
-All that said, please be concise!  We're not looking for you to write a book here: just a brief description.
-
-You're not required to use markdown for your writeup.  If you use another method please just submit a pdf of your writeup. Here is a link to a [writeup template file](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md). 
-
-
-The Project
----
-
-## If you have already installed the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) you should be good to go!   If not, you should install the starter kit to get started on this project. ##
-
-**Step 1:** Set up the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) if you haven't already.
-
-**Step 2:** Open the code in a Jupyter Notebook
-
-You will complete the project code in a Jupyter notebook.  If you are unfamiliar with Jupyter Notebooks, check out [Udacity's free course on Anaconda and Jupyter Notebooks](https://classroom.udacity.com/courses/ud1111) to get started.
-
-Jupyter is an Ipython notebook where you can run blocks of code and see results interactively.  All the code for this project is contained in a Jupyter notebook. To start Jupyter in your browser, use terminal to navigate to your project directory and then run the following command at the terminal prompt (be sure you've activated your Python 3 carnd-term1 environment as described in the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) installation instructions!):
-
-`> jupyter notebook`
-
-A browser window will appear showing the contents of the current directory.  Click on the file called "P1.ipynb".  Another browser window will appear displaying the notebook.  Follow the instructions in the notebook to complete the project.  
-
-**Step 3:** Complete the project and submit both the Ipython notebook and the project writeup
-
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
 

@@ -77,11 +77,7 @@ In order to draw a single line on the left and right lanes, I modified the draw_
 Lines on left half of the image and with a slope < 0 are grouped for left side line.
 Lines on right half of the image and with a slope > 0 are grouped for right side line.
 2. Choosing the dominant line for each of the two groups.
-Dominant line is defined as the line that passed through the average between all the points of a group and through the two bases of the trapezoid of the ROI. These two points are computed using the equation:
-```
-y-y_average = slope*(x-x_average)
-```
-with y equals to the two value of the ROI trapezoid bases
+Dominant line is defined as the line that passed through the average between all the points of a group and through the two bases of the trapezoid of the ROI. These two points are computed using line equation with computed slope and passing through average point with the two value of the ROI trapezoid bases
 
 ### 2. Identify potential shortcomings with your current pipeline
 
