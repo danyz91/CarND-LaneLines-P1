@@ -2,14 +2,21 @@ import cv2
 import numpy as np
 import os
 import cv_lane_detector
-from cv_lane_detector import LaneDetectionPipelineSteps
+import argparse
 
 
 def nothing(x):
     pass
 
+parser = argparse.ArgumentParser(description='Lane Detection Parameters Tuning GUI')
+parser.add_argument('-d', '--images_dir', help='test images directory', type=str, required=True)
+parser.add_argument('-s', '--step', help='pipeline steps to plot. 0 for final output', 
+    type=int, choices=(0,1,2,3,4,5), default=0)
+
 
 def main():
+    args = parser.parse_args()
+    pipeline_step = args.step
     # Create main window
     cv2.namedWindow('lane_detect_window')
     
@@ -24,12 +31,14 @@ def main():
     cv2.createTrackbar('max_line_gap', 'lane_detect_window', 10, 255, nothing)
 
     # Load images from test folder
-    test_images_dir = "test_images/"
+    test_images_dir = args.images_dir
     test_images_names = os.listdir(test_images_dir)
 
     test_images = list()
     for filename in test_images_names:
         test_images.append(cv2.imread(os.path.join(test_images_dir, filename)))
+
+    frame_result_list = list()
 
     # Enter main loop
     while True:
@@ -46,29 +55,27 @@ def main():
         threshold = cv2.getTrackbarPos('threshold', 'lane_detect_window')
         min_line_len = cv2.getTrackbarPos('min_line_len', 'lane_detect_window')
         max_line_gap = cv2.getTrackbarPos('max_line_gap', 'lane_detect_window')
-        print(smooth_kernel_size)
+
         # Assert smooth_kernel size is even
         if smooth_kernel_size % 2 == 0:
             smooth_kernel_size += 1
 
         # Running lane detector on all images
-        result_list = list()
+        frame_result_list.clear()
         for image in test_images:
-            curr_result = cv_lane_detector.line_extraction_pipeline(image.copy(), LaneDetectionPipelineSteps.All,
+            curr_result = cv_lane_detector.line_extraction_pipeline(image.copy(), pipeline_step,
                                                                     smooth_kernel_size,
                                                                     canny_low_threshold, canny_high_threshold,
                                                                     rho, theta_deg, threshold,
                                                                     min_line_len, max_line_gap)
 
-            curr_result_resize = cv2.resize(curr_result, (580, 340))  # Resize image
+            curr_result_resize = cv2.resize(curr_result, (int(image.shape[1]/2.0), int(image.shape[0]/2.0)))  # Resize image
 
-            result_list.append(curr_result_resize)
+            frame_result_list.append(curr_result_resize)
 
         # Concatenate result on two rows for visualization
-        res_tuple = tuple(result_list)
-
-        final_frame1 = cv2.hconcat( (res_tuple[0], res_tuple[1], res_tuple[2]) )
-        final_frame2 = cv2.hconcat( (res_tuple[3], res_tuple[4], res_tuple[5]) )
+        final_frame1 = cv2.hconcat( (frame_result_list[0], frame_result_list[1], frame_result_list[2]) )
+        final_frame2 = cv2.hconcat( (frame_result_list[3], frame_result_list[4], frame_result_list[5]) )
 
         final_frame = cv2.vconcat((final_frame1, final_frame2))
 
